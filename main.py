@@ -4,6 +4,7 @@ from requests.exceptions import ConnectionError
 import plotly.express as px
 import streamlit as st
 import io
+from datetime import datetime
 
 def get_data():
     url = 'http://queimadas.dgi.inpe.br/api/focos'
@@ -17,11 +18,15 @@ def get_data():
         df['Risco de Fogo'] = df['Risco de Fogo'].fillna('?')
         df['Precipitação'] = df['Precipitação'].fillna('?')
         df['Dias sem Chuva'] = df['Dias sem Chuva'].fillna('?')
+        df.to_csv('dados_backup.csv',index = False,sep = ';',decimal = ',')
+        time_df = pd.DataFrame({'time':[datetime.now()]})
+        time_df.to_csv('time.csv',index = False)
         st.session_state['backup'] = False
     except ConnectionError:
         print('O request falhou')
         df = pd.read_csv('dados_backup.csv',sep = ';',decimal = ',')
         st.session_state['backup'] = True
+        st.session_state['time'] = pd.read_csv('time.csv').loc[0,'time']
     return df
 
 def update_figure(df):
@@ -64,7 +69,7 @@ figure = update_figure(st.session_state.data)
 
 st.plotly_chart(figure,use_container_width = True,config = {'displaylogo':False})
 if st.session_state.backup:
-    st.warning('A requisição para BDQueimadas falhou. Usando dados coletados em 11/12/2022 às 09:13.')
+    st.warning(f'A requisição para BDQueimadas falhou. Usando dados coletados em {st.session_state.time}')
 
 with st.sidebar:
     st.write('Aplicação produzida como trabalho final na disciplina de Conservação de Recursos Naturais')
