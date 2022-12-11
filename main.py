@@ -16,7 +16,10 @@ def hora(num):
 def get_data():
     url = 'http://queimadas.dgi.inpe.br/api/focos'
     print('Obtendo dados...')
-    req = requests.get(url)
+    try:
+        req = requests.get(url)
+    except:
+        print('O request falhou')
     print('Carregando aplicação...')
     df = pd.json_normalize(req.json())
     df = df.rename(columns={'properties.longitude':'Longitude','properties.latitude':'Latitude','properties.pais':'País',
