@@ -18,17 +18,17 @@ def get_data():
     print('Obtendo dados...')
     try:
         req = requests.get(url)
+        df = pd.json_normalize(req.json())
+        df = df.rename(columns={'properties.longitude':'Longitude','properties.latitude':'Latitude','properties.pais':'País',
+        'properties.estado':'Estado','properties.municipio':'Município','properties.risco_fogo':'Risco de Fogo',
+        'properties.precipitacao':'Precipitação','properties.numero_dias_sem_chuva':'Dias sem Chuva','properties.data_hora_gmt':'Data'})
+        df['Risco de Fogo'] = df['Risco de Fogo'].fillna('?')
+        df['Precipitação'] = df['Precipitação'].fillna('?')
+        df['Dias sem Chuva'] = df['Dias sem Chuva'].fillna('?')
     except:
         print('O request falhou')
-    print('Carregando aplicação...')
-    df = pd.json_normalize(req.json())
-    df = df.rename(columns={'properties.longitude':'Longitude','properties.latitude':'Latitude','properties.pais':'País',
-    'properties.estado':'Estado','properties.municipio':'Município','properties.risco_fogo':'Risco de Fogo',
-    'properties.precipitacao':'Precipitação','properties.numero_dias_sem_chuva':'Dias sem Chuva','properties.data_hora_gmt':'Data'})
-    df['Risco de Fogo'] = df['Risco de Fogo'].fillna('?')
-    df['Precipitação'] = df['Precipitação'].fillna('?')
-    df['Dias sem Chuva'] = df['Dias sem Chuva'].fillna('?')
-    df['Data'] = pd.to_datetime(df['Data'])
+        df = pd.read_csv('dados_backup.csv',sep = ';',decimal = ',')
+        st.session_state['backup'] = True
     return df
 
 def update_figure(df):
@@ -64,12 +64,15 @@ st.header('Focos de Calor na América do Sul')
 with st.spinner(text='Obtendo dados...'):
 
     if 'data' not in st.session_state:
+        st.session_state['backup'] = False
         st.session_state['data'] = get_data()
         st.session_state['for_download'] = st.session_state.data.to_csv(index = False, sep = ';',decimal = ',')
 
 figure = update_figure(st.session_state.data)
 
 st.plotly_chart(figure,use_container_width = True,config = {'displaylogo':False})
+if st.session_state.backup:
+    st.warning('A requisição para BDQueimadas falhou. Usando dados coletados em 11/12/2022 às 09:13.')
 
 with st.sidebar:
     st.write('Aplicação produzida como trabalho final na disciplina de Conservação de Recursos Naturais')
