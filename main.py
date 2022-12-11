@@ -1,17 +1,9 @@
 import pandas as pd
 import requests
+from requests.exceptions import ConnectionError
 import plotly.express as px
 import streamlit as st
 import io
-
-def reduce_capilarity(data):
-    return pd.Timestamp(f'{data.year}-{data.month}-{data.day} {data.hour}:00:00')
-
-def hora(num):
-    value = str(num)
-    if len(value) == 1:
-        value = '0' + value
-    return value + 'h'
 
 def get_data():
     url = 'http://queimadas.dgi.inpe.br/api/focos'
@@ -25,7 +17,8 @@ def get_data():
         df['Risco de Fogo'] = df['Risco de Fogo'].fillna('?')
         df['Precipitação'] = df['Precipitação'].fillna('?')
         df['Dias sem Chuva'] = df['Dias sem Chuva'].fillna('?')
-    except:
+        st.session_state['backup'] = False
+    except ConnectionError:
         print('O request falhou')
         df = pd.read_csv('dados_backup.csv',sep = ';',decimal = ',')
         st.session_state['backup'] = True
@@ -64,7 +57,6 @@ st.header('Focos de Calor na América do Sul')
 with st.spinner(text='Obtendo dados...'):
 
     if 'data' not in st.session_state:
-        st.session_state['backup'] = False
         st.session_state['data'] = get_data()
         st.session_state['for_download'] = st.session_state.data.to_csv(index = False, sep = ';',decimal = ',')
 
