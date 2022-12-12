@@ -76,5 +76,6 @@ with st.sidebar:
     st.write('Alunos:')
     st.write('Aruã Viggiano Souza')
     st.write('Vitor João de Andrade')
+    st.write('Wagner Antonio Reis Silva')
     st.download_button('Baixar dados',st.session_state.for_download,'focos_de_calor_america_do_sul.csv')
     st.download_button('Baixar mapa',st.session_state.html_bytes,'mapa.html')
