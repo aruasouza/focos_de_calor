@@ -32,7 +32,7 @@ def get_data():
 def update_figure(df):
 
     fig = px.density_mapbox(df, lat="Latitude", lon="Longitude",radius = 4, hover_name="Município",
-        hover_data=["País",'Estado','Precipitação','Dias sem Chuva','Risco de Fogo'], zoom=3, height=700)
+        hover_data=["País",'Estado'], zoom=3, height=700)
 
     fig.update_layout(mapbox_style="stamen-terrain")
     fig.update_layout(transition_duration=500)
