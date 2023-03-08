@@ -29,7 +29,7 @@ def get_data():
 def update_figure(df):
 
     fig = px.density_mapbox(df, lat="Latitude", lon="Longitude",radius = 4, hover_name="Município",
-        hover_data=["País",'Estado'], zoom=3, height=700)
+        hover_data=["País",'Estado'], zoom=3, height=700,color_continuous_scale = 'Hot')
 
     fig.update_layout(mapbox_style="stamen-terrain")
     fig.update_layout(transition_duration=500)
