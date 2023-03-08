@@ -1,6 +1,5 @@
 import pandas as pd
 import requests
-from requests.exceptions import ConnectionError
 import plotly.express as px
 import streamlit as st
 import io
@@ -14,15 +13,13 @@ def get_data():
         df = pd.json_normalize(req.json())
         df = df.rename(columns={'properties.longitude':'Longitude','properties.latitude':'Latitude','properties.pais':'País',
         'properties.estado':'Estado','properties.municipio':'Município','properties.risco_fogo':'Risco de Fogo',
-        'properties.precipitacao':'Precipitação','properties.numero_dias_sem_chuva':'Dias sem Chuva','properties.data_hora_gmt':'Data'})
-        df['Risco de Fogo'] = df['Risco de Fogo'].fillna('?')
-        df['Precipitação'] = df['Precipitação'].fillna('?')
-        df['Dias sem Chuva'] = df['Dias sem Chuva'].fillna('?')
+        'properties.precipitacao':'Precipitação','properties.numero_dias_sem_chuva':'Dias sem Chuva','properties.data_hora_gmt':'Data',
+        'geometry.type':'geometry_type','geometry.coordinates':'geometry_coordinates','properties.satelite':'Satélite'})
         df.to_csv('dados_backup.csv',index = False,sep = ';',decimal = ',')
         time_df = pd.DataFrame({'time':[datetime.now()]})
         time_df.to_csv('time.csv',index = False)
         st.session_state['backup'] = False
-    except ConnectionError:
+    except Exception:
         print('O request falhou')
         df = pd.read_csv('dados_backup.csv',sep = ';',decimal = ',')
         st.session_state['backup'] = True
@@ -41,7 +38,7 @@ def update_figure(df):
     buffer = io.StringIO()
     fig.write_html(buffer)
     st.session_state['html_bytes'] = buffer.getvalue().encode()
-    fig.update_layout(height = 550)
+    fig.update_layout(height = 500)
 
     return fig
 
@@ -57,7 +54,10 @@ header {visibility:hidden;}
 '''
 
 st.markdown(style,unsafe_allow_html=True)
-st.header('Focos de Calor na América do Sul')
+col_title,col_warning = st.columns(2)
+
+col_title.header('Focos de Calor na América do Sul')
+col_title.caption('Últimas 24h')
 
 with st.spinner(text='Obtendo dados...'):
 
@@ -67,12 +67,13 @@ with st.spinner(text='Obtendo dados...'):
 
 figure = update_figure(st.session_state.data)
 
-st.plotly_chart(figure,use_container_width = True,config = {'displaylogo':False})
 if st.session_state.backup:
-    st.warning(f'A requisição para BDQueimadas falhou. Usando dados coletados em {st.session_state.time}')
+    col_warning.warning(f'A requisição para BDQueimadas falhou. Usando dados coletados em {st.session_state.time}')
 
-with st.sidebar:
-    st.write('Focos de calor na América do Sul identificados nas últimas 24h.')
-    st.write('Fonte: BDQueimadas (INPE).')
-    st.download_button('Baixar dados',st.session_state.for_download,'focos_de_calor_america_do_sul.csv')
-    st.download_button('Baixar mapa',st.session_state.html_bytes,'mapa.html')
+st.plotly_chart(figure,use_container_width = True,config = {'displaylogo':False})
+
+cl1,cl2,cl3,cl4,cl5 = st.columns([1,1,2,3,3])
+cl1.download_button('Baixar dados',st.session_state.for_download,'focos_de_calor_america_do_sul.csv')
+cl2.download_button('Baixar mapa',st.session_state.html_bytes,'mapa.html')
+cl4.caption('Dados: https://queimadas.dgi.inpe.br/queimadas/portal')
+cl5.caption('Código fonte: https://github.com/aruasouza/focos_de_calor')
